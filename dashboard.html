@@ -174,8 +174,54 @@
                     <button id="reset-filter-btn" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;"><i class="fa-solid fa-rotate-left"></i> Reset</button>
                 </div>
 
-                <!-- KPIs: TỔNG QUAN VẬN HÀNH -->
-                <h3 class="section-title">TỔNG QUAN VẬN HÀNH</h3>
+                <!-- CHI TIẾT CÔNG TRÌNH (Ẩn mặc định, hiện khi lọc) -->
+                <div id="project-details-view" class="chart-container" style="display: none; border-left: 4px solid #3b82f6; margin-bottom: 30px;">
+                    <h3 id="project-detail-title">Chi Tiết Công Trình: -</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Hạng Mục</th>
+                                    <th>Nhà Thầu</th>
+                                    <th>Giám Sát</th>
+                                    <th style="text-align: center;">Tiến Độ (%)</th>
+                                    <th style="text-align: right;">Trạng Thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="project-detail-body">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- KPIs: CẢNH BÁO TỔNG QUAN -->
+                <h3 class="section-title">BẢNG CẢNH BÁO TỔNG QUAN</h3>
+                <div class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="stat-card">
+                        <i class="fa-solid fa-person-digging" style="color: #3b82f6;"></i>
+                        <div class="stat-value" id="kpi-running">0</div>
+                        <div class="stat-label">Đang Triển Khai</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fa-solid fa-check-double" style="color: #10b981;"></i>
+                        <div class="stat-value" id="kpi-completed">0</div>
+                        <div class="stat-label">Đã Hoàn Thành</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fa-solid fa-clock" style="color: #f59e0b;"></i>
+                        <div class="stat-value" id="kpi-delayed-projects">0</div>
+                        <div class="stat-label">Đang Bị Chậm</div>
+                    </div>
+                    <div class="stat-card" style="border: 1px solid rgba(239, 68, 68, 0.5); box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);">
+                        <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i>
+                        <div class="stat-value" style="color: #ef4444;" id="kpi-sos">0</div>
+                        <div class="stat-label" style="color: #ef4444; font-weight: bold;">CÔNG TRÌNH SOS</div>
+                    </div>
+                </div>
+
+                <!-- KPIs: HIỆU SUẤT VẬN HÀNH -->
+                <h3 class="section-title">HIỆU SUẤT VẬN HÀNH</h3>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <i class="fa-solid fa-clock-rotate-left" style="color: #10b981;"></i>

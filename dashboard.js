@@ -44,19 +44,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
     projectFilter.addEventListener('change', (e) => {
         const selectedProject = e.target.value;
+        const detailView = document.getElementById('project-details-view');
+        const detailTitle = document.getElementById('project-detail-title');
+        const detailBody = document.getElementById('project-detail-body');
+
         if (selectedProject) {
+            detailView.style.display = 'block';
+            detailTitle.textContent = `Chi Tiết Công Trình: ${selectedProject}`;
+            detailBody.innerHTML = '';
+
             const filtered = cachedData.filter(row => {
                 const pName = row['Công Trình'] || row['Tên Công Trình'] || row['projectName'] || '';
                 return pName === selectedProject;
             });
+            
+            let cats = {};
+            filtered.forEach(row => {
+                const cat = row['Hạng Mục'] || 'Chung';
+                cats[cat] = {
+                    contractor: row['Nhà Thầu'] || 'Không rõ',
+                    supervisor: row['Giám Sát'] || 'Vô danh',
+                    progress: parseFloat(row['% Hoàn Thành']) || 0,
+                    status: row['Tình Trạng'] || (parseFloat(row['Tiến Độ'] || row['TĐ_Đúng hạn'] || 0) >= 7 ? 'Đúng tiến độ' : 'Chậm')
+                };
+            });
+            
+            Object.keys(cats).forEach(cat => {
+                let data = cats[cat];
+                let statusStyle = data.status === 'Chậm' ? 'background: rgba(239, 68, 68, 0.2); color: #ef4444;' : 
+                                  data.status === 'Sớm hơn' ? 'background: rgba(139, 92, 246, 0.2); color: #8b5cf6;' : 
+                                  'background: rgba(16, 185, 129, 0.2); color: #10b981;';
+                detailBody.innerHTML += `
+                    <tr>
+                        <td><strong>${cat}</strong></td>
+                        <td>${data.contractor}</td>
+                        <td>${data.supervisor}</td>
+                        <td style="text-align: center;">
+                            <div style="background: rgba(255,255,255,0.1); border-radius: 10px; height: 8px; width: 100%; margin-top: 5px;">
+                                <div style="background: #3b82f6; height: 100%; border-radius: 10px; width: ${data.progress}%;"></div>
+                            </div>
+                            <small>${data.progress}%</small>
+                        </td>
+                        <td style="text-align: right;"><span style="padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; ${statusStyle}">${data.status}</span></td>
+                    </tr>
+                `;
+            });
+
             processData(filtered);
         } else {
+            detailView.style.display = 'none';
             processData(cachedData);
         }
     });
 
     resetFilterBtn.addEventListener('click', () => {
         projectFilter.value = '';
+        document.getElementById('project-details-view').style.display = 'none';
         processData(cachedData);
     });
 
@@ -242,11 +285,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Group by Project
             if (pName !== 'Không rõ') {
-                if (!projects[pName]) projects[pName] = { scoreSum: 0, count: 0, errors: 0, delayed: 0 };
+                if (!projects[pName]) projects[pName] = { scoreSum: 0, count: 0, errors: 0, delayed: 0, categories: {} };
                 projects[pName].scoreSum += finalScore;
                 projects[pName].count++;
                 projects[pName].errors += errors.length;
                 if (!isOnTime) projects[pName].delayed++;
+                
+                const category = row['Hạng Mục'] || 'Khác';
+                if (!projects[pName].categories[category]) {
+                    projects[pName].categories[category] = { progress: 0, contractor: cName, supervisor: sName, status: projectStatus || (isOnTime ? 'Đúng tiến độ' : 'Chậm') };
+                }
+                projects[pName].categories[category].progress = progressPercent;
+                projects[pName].categories[category].contractor = cName;
+                projects[pName].categories[category].supervisor = sName;
+                projects[pName].categories[category].status = projectStatus || (isOnTime ? 'Đúng tiến độ' : 'Chậm');
             }
 
             // Group by Contractor
@@ -311,19 +363,46 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('kpi-errors').textContent = totalErrors;
         document.getElementById('avg-kcs').textContent = validScores ? (totalScoreSum/validScores).toFixed(1) : '0.0';
 
-        // 2. Project Highlights
-        let bestProject = '-', riskProject = '-', delayedProject = '-';
-        let maxScore = -1, maxErrors = -1, maxDelayed = -1;
+        // 2. Project Highlights & SOS Logic
+        let bestProject = '-', riskProject = '-';
+        let maxScore = -1, maxErrors = -1;
+        
+        let runningCount = 0;
+        let completedCount = 0;
+        let delayedProjCount = 0;
+        let sosCount = 0;
+        let sosList = []; // Array of SOS project names
+
         Object.keys(projects).forEach(p => {
             let d = projects[p];
             let avg = d.scoreSum / d.count;
             if (avg > maxScore) { maxScore = avg; bestProject = p; }
             if (d.errors > maxErrors) { maxErrors = d.errors; riskProject = p; }
-            if (d.delayed > maxDelayed) { maxDelayed = d.delayed; delayedProject = p; }
+            
+            // Tính toán SOS & Trạng thái Công trình
+            let cats = Object.values(d.categories);
+            let isCompleted = cats.length > 0 && cats.every(c => c.progress === 100);
+            let isDelayed = d.delayed > 0 || cats.some(c => c.status === 'Chậm');
+            // Công trình SOS: Có > 3 lần báo chậm hoặc có > 3 lỗi phạt
+            let isSOS = d.delayed >= 3 || d.errors >= 3;
+
+            runningCount++;
+            if (isCompleted) completedCount++;
+            if (isDelayed) delayedProjCount++;
+            if (isSOS) {
+                sosCount++;
+                sosList.push(p);
+            }
         });
+        
+        if (document.getElementById('kpi-running')) document.getElementById('kpi-running').textContent = runningCount;
+        if (document.getElementById('kpi-completed')) document.getElementById('kpi-completed').textContent = completedCount;
+        if (document.getElementById('kpi-delayed-projects')) document.getElementById('kpi-delayed-projects').textContent = delayedProjCount;
+        if (document.getElementById('kpi-sos')) document.getElementById('kpi-sos').textContent = sosCount;
+
         document.getElementById('best-project').textContent = bestProject;
         document.getElementById('risk-project').textContent = riskProject;
-        document.getElementById('delayed-project').textContent = delayedProject;
+        document.getElementById('delayed-project').textContent = sosCount > 0 ? sosList.slice(0, 2).join(', ') + (sosCount > 2 ? '...' : '') : '-';
 
         // 3. Contractor Highlights & Select Populate
         let topContractor = '-', bottomContractor = '-';
@@ -406,7 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // 4. Sinh AI Insights
-        generateAIInsights(topContractor, bottomContractor, riskProject, totalErrors, onTimePct, delayReasonsCount, stagnantItems);
+        generateAIInsights(topContractor, bottomContractor, riskProject, totalErrors, onTimePct, delayReasonsCount, sosCount, sosList, stagnantItems);
 
         // 5. Vẽ biểu đồ Trend
         drawTrendCharts(dateStats);
@@ -416,10 +495,14 @@ document.addEventListener('DOMContentLoaded', () => {
         drawDelayReasonChart(delayReasonsCount);
     }
 
-    function generateAIInsights(topC, bottomC, riskP, errs, onTimePct, delayReasonsCount, stagnantItems) {
+    function generateAIInsights(topC, bottomC, riskP, errs, onTimePct, delayReasonsCount, sosCount, sosList, stagnantItems) {
         const list = document.getElementById('ai-insights-list');
         list.innerHTML = '';
         const insights = [];
+        
+        if (sosCount > 0) {
+            insights.push(`KHẨN CẤP (SOS): Đang có <strong style="color: #ef4444;">${sosCount} công trình</strong> cần ban giám đốc tập trung xử lý ngay lập tức (Bao gồm: ${sosList.slice(0,3).join(', ')}).`);
+        }
         
         // 1. Cảnh báo dậm chân tại chỗ (Stagnation)
         if (stagnantItems && stagnantItems.length > 0) {
