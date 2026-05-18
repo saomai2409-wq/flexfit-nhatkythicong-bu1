@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flexfit AI Site Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo-container">
+                <i class="fa-solid fa-microchip"></i>
+                <h1>FLEXFIT AI</h1>
+            </div>
+            <p class="subtitle">Daily Site Report Agent v2.5</p>
+            <div style="margin-top: 15px;">
+                <a href="dashboard.html" style="color: var(--accent-color); text-decoration: none; border: 1px solid var(--accent-color); padding: 5px 15px; border-radius: 20px; font-size: 0.85rem;"><i class="fa-solid fa-chart-pie"></i> Xem Dashboard</a>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <form id="report-form" class="glass-panel">
+                
+                <!-- 1. Timestamp (Hidden, auto-generated) -->
+                <input type="hidden" id="timestamp" name="timestamp">
+
+                <!-- 2. Tên Công Trình -->
+                <div class="form-group">
+                    <label for="project-name"><i class="fa-solid fa-building"></i> Tên Công Trình</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="project-name" name="projectName" list="project-list" placeholder="Tìm hoặc chọn công trình..." required autocomplete="off">
+                        <datalist id="project-list"></datalist>
+                    </div>
+                </div>
+
+                <!-- 2.5 Giám Sát Phụ Trách -->
+                <div class="form-group">
+                    <label for="supervisor"><i class="fa-solid fa-user-shield"></i> Tên Giám Sát Phụ Trách</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="supervisor" name="supervisor" list="supervisor-list" placeholder="Nhập hoặc chọn tên giám sát..." required autocomplete="off">
+                        <datalist id="supervisor-list">
+                            <option value="Phạm Văn Khuê">
+                            <option value="Nguyễn Huy Toàn">
+                        </datalist>
+                    </div>
+                </div>
+
+                <!-- 3. Nhà Thầu/Tổ Đội -->
+                <div class="form-group">
+                    <label for="contractor"><i class="fa-solid fa-users"></i> Nhà Thầu / Tổ Đội</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="contractor" name="contractor" list="contractor-list" placeholder="Nhập hoặc chọn nhà thầu..." required autocomplete="off">
+                        <datalist id="contractor-list"></datalist>
+                    </div>
+                </div>
+
+                <!-- 4. Hạng Mục Thi Công -->
+                <div class="form-group">
+                    <label><i class="fa-solid fa-list-check"></i> Hạng Mục Thi Công</label>
+                    <div class="quick-select-grid" id="category-grid">
+                        <div class="quick-chip" data-value="Gỗ">Gỗ</div>
+                        <div class="quick-chip" data-value="Đá">Đá</div>
+                        <div class="quick-chip" data-value="Kính">Kính</div>
+                        <div class="quick-chip" data-value="Thiết bị">Thiết bị</div>
+                        <div class="quick-chip" data-value="Phá dỡ">Phá dỡ</div>
+                        <div class="quick-chip" data-value="Sơn bả">Sơn bả</div>
+                    </div>
+                    <input type="hidden" id="category" name="category" required>
+                </div>
+
+                <!-- 4.1 TÌNH TRẠNG THỰC TẾ -->
+                <div class="form-group">
+                    <label><i class="fa-solid fa-clock-rotate-left"></i> Tình Trạng Thực Tế</label>
+                    <div class="status-grid" id="status-grid">
+                        <div class="status-btn" data-value="Sớm hơn" style="--btn-color: #8b5cf6;">Sớm hơn</div>
+                        <div class="status-btn active" data-value="Đúng tiến độ" style="--btn-color: #10b981;">Đúng tiến độ</div>
+                        <div class="status-btn" data-value="Chậm" style="--btn-color: #ef4444;">Chậm</div>
+                    </div>
+                    <input type="hidden" id="project-status" name="project_status" value="Đúng tiến độ">
+                </div>
+
+                <!-- 4.2 KHU VỰC BÁO CHẬM (Ẩn mặc định) -->
+                <div class="form-group" id="delay-block" style="display: none; background: rgba(239, 68, 68, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                    <label style="color: #ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Mức Độ Chậm</label>
+                    <select id="delay-level" name="delay_level" style="margin-bottom: 15px; width: 100%; padding: 12px; border-radius: 8px; background: rgba(15, 23, 42, 0.6); color: white; border: 1px solid var(--glass-border);">
+                        <option value="">-- Chọn mức độ --</option>
+                        <option value="Chậm 1 ngày">Chậm 1 ngày</option>
+                        <option value="Chậm 2 ngày">Chậm 2 ngày</option>
+                        <option value="Chậm >2 ngày">Chậm >2 ngày</option>
+                    </select>
+
+                    <label style="color: #ef4444;"><i class="fa-solid fa-clipboard-question"></i> Nguyên Nhân Chậm (Có thể chọn nhiều)</label>
+                    <div class="delay-reasons-grid">
+                        <div class="reason-category">
+                            <strong>Nhà thầu</strong>
+                            <label><input type="checkbox" name="delay_reason" value="Nhà thầu: Thiếu thợ"> Thiếu thợ</label>
+                            <label><input type="checkbox" name="delay_reason" value="Nhà thầu: Thiếu vật tư"> Thiếu vật tư</label>
+                            <label><input type="checkbox" name="delay_reason" value="Nhà thầu: Làm sai"> Làm sai</label>
+                        </div>
+                        <div class="reason-category">
+                            <strong>Nội bộ Flexfit</strong>
+                            <label><input type="checkbox" name="delay_reason" value="Nội bộ: Chậm hồ sơ mua"> Chậm H/S mua</label>
+                            <label><input type="checkbox" name="delay_reason" value="Nội bộ: Chậm hồ sơ SX"> Chậm H/S SX</label>
+                            <label><input type="checkbox" name="delay_reason" value="Nội bộ: Chậm triển khai"> Chậm triển khai</label>
+                        </div>
+                        <div class="reason-category">
+                            <strong>Khách hàng</strong>
+                            <label><input type="checkbox" name="delay_reason" value="Khách hàng: Chưa bàn giao mặt bằng"> Chưa giao MB</label>
+                            <label><input type="checkbox" name="delay_reason" value="Khách hàng: Phát sinh thay đổi"> Phát sinh thay đổi</label>
+                        </div>
+                        <div class="reason-category">
+                            <strong>Khách quan</strong>
+                            <label><input type="checkbox" name="delay_reason" value="Khách quan: Thời tiết"> Thời tiết</label>
+                            <label><input type="checkbox" name="delay_reason" value="Khách quan: BQL tòa nhà"> BQL tòa nhà</label>
+                            <label><input type="checkbox" name="delay_reason" value="Khách quan: Vận chuyển"> Vận chuyển</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4.3 % HOÀN THÀNH CÔNG VIỆC -->
+                <div class="form-group">
+                    <label><i class="fa-solid fa-chart-pie"></i> % Hoàn Thành Công Việc</label>
+                    <div class="progress-slider-wrapper">
+                        <input type="range" id="progress-slider" name="progress_percent" min="0" max="100" step="5" value="0" class="large-slider">
+                        <div class="progress-value"><span id="progress-text">0</span>%</div>
+                    </div>
+                </div>
+
+                <!-- 5. Nội Dung (Voice to text) -->
+                <div class="form-group">
+                    <label for="content"><i class="fa-solid fa-microphone-lines"></i> Nội Dung Báo Cáo</label>
+                    <div class="voice-input-container">
+                        <textarea id="content" name="content" rows="4" placeholder="Nhập nội dung hoặc nhấn nút Micro để đọc..."></textarea>
+                        <button type="button" class="voice-btn" id="record-btn" title="Chạm để thu âm">
+                            <i class="fa-solid fa-microphone"></i>
+                        </button>
+                    </div>
+                    <div class="recording-indicator" id="recording-indicator">
+                        <span class="pulse"></span> Đang thu âm... Chạm lại để dừng.
+                    </div>
+                </div>
+
+                <!-- 6. Media -->
+                <div class="form-group">
+                    <label for="media-upload"><i class="fa-solid fa-camera"></i> Hình Ảnh / Video (Tối đa 20)</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="media-upload" name="media" accept="image/*,video/*" multiple class="file-input">
+                        <div class="upload-ui">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <span>Chạm để chụp hoặc chọn file</span>
+                        </div>
+                    </div>
+                    <div id="media-preview" class="media-preview-grid"></div>
+                </div>
+
+                <!-- 7. Vị trí GPS -->
+                <div class="form-group">
+                    <label><i class="fa-solid fa-location-dot"></i> Vị Trí Hiện Trường</label>
+                    <div class="location-wrapper">
+                        <input type="text" id="gps-location" name="gps" readonly placeholder="Chưa lấy tọa độ...">
+                        <button type="button" id="get-location-btn" class="action-btn">
+                            <i class="fa-solid fa-crosshairs"></i> Lấy GPS
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 8. Ghi chú / Phát sinh -->
+                <div class="form-group">
+                    <label for="notes"><i class="fa-solid fa-triangle-exclamation"></i> Ghi Chú / Phát Sinh</label>
+                    <textarea id="notes" name="notes" rows="2" placeholder="Ghi chú thêm hoặc AI sẽ tự bóc tách từ giọng nói..."></textarea>
+                </div>
+
+                <!-- 8. Chấm điểm đánh giá Nhanh (Thao tác 1 chạm) -->
+                <div class="form-group scoring-section">
+                    <label><i class="fa-solid fa-bolt"></i> Đánh Giá Nhanh</label>
+                    
+                    <div class="quick-scoring-container">
+                        <!-- 1. Chất lượng -->
+                        <div class="score-card">
+                            <h4>1. Chất lượng</h4>
+                            <div class="btn-group" data-target="score_quality">
+                                <button type="button" class="score-btn active" data-val="10">Rất tốt</button>
+                                <button type="button" class="score-btn" data-val="8">Đạt</button>
+                                <button type="button" class="score-btn" data-val="6">Cần cải thiện</button>
+                                <button type="button" class="score-btn" data-val="4">Kém</button>
+                            </div>
+                            <input type="hidden" name="score_quality" id="score_quality" value="10">
+                        </div>
+
+                        <!-- 2. Tiến độ -->
+                        <div class="score-card">
+                            <h4>2. Tiến độ</h4>
+                            <div class="btn-group" data-target="score_schedule">
+                                <button type="button" class="score-btn active" data-val="10">Rất tốt</button>
+                                <button type="button" class="score-btn" data-val="8">Đạt</button>
+                                <button type="button" class="score-btn" data-val="6">Cần cải thiện</button>
+                                <button type="button" class="score-btn" data-val="4">Kém</button>
+                            </div>
+                            <input type="hidden" name="score_schedule" id="score_schedule" value="10">
+                        </div>
+
+                        <!-- 3. Thái độ phối hợp -->
+                        <div class="score-card">
+                            <h4>3. Thái độ phối hợp</h4>
+                            <div class="btn-group" data-target="score_attitude">
+                                <button type="button" class="score-btn active" data-val="10">Rất tốt</button>
+                                <button type="button" class="score-btn" data-val="8">Đạt</button>
+                                <button type="button" class="score-btn" data-val="6">Cần cải thiện</button>
+                                <button type="button" class="score-btn" data-val="4">Kém</button>
+                            </div>
+                            <input type="hidden" name="score_attitude" id="score_attitude" value="10">
+                        </div>
+
+                        <!-- 4. Kỷ luật công trình -->
+                        <div class="score-card">
+                            <h4>4. Kỷ luật công trình</h4>
+                            <div class="btn-group" data-target="score_discipline">
+                                <button type="button" class="score-btn active" data-val="10">Rất tốt</button>
+                                <button type="button" class="score-btn" data-val="8">Đạt</button>
+                                <button type="button" class="score-btn" data-val="6">Cần cải thiện</button>
+                                <button type="button" class="score-btn" data-val="4">Kém</button>
+                            </div>
+                            <input type="hidden" name="score_discipline" id="score_discipline" value="10">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9. Trừ điểm nhanh (Deductions) -->
+                <div class="form-group deductions-section">
+                    <label><i class="fa-solid fa-minus-circle"></i> Phạt lỗi nhanh (Tùy chọn)</label>
+                    <div class="deduction-grid">
+                        <button type="button" class="deduction-btn" data-val="-2" data-name="Chậm tiến độ">Chậm tiến độ (-2)</button>
+                        <button type="button" class="deduction-btn" data-val="-2" data-name="Lỗi hoàn thiện">Lỗi hoàn thiện (-2)</button>
+                        <button type="button" class="deduction-btn" data-val="-1" data-name="Không vệ sinh">Không vệ sinh (-1)</button>
+                        <button type="button" class="deduction-btn" data-val="-1" data-name="Không phối hợp">Không phối hợp (-1)</button>
+                    </div>
+                    <input type="hidden" name="deductions_list" id="deductions_list" value="">
+                    <input type="hidden" name="deduction_score" id="deduction_score" value="0">
+                </div>
+
+                <!-- 10. Tổng Kết Điểm & Xếp Loại -->
+                <div class="total-score-display">
+                    <div class="score-wrapper">
+                        <span class="score-label">Tổng Điểm KCS:</span>
+                        <span class="score-value" id="final-score">10.0</span><span style="font-size: 1rem; color: var(--text-muted);">/10</span>
+                    </div>
+                    <div class="rank-wrapper">
+                        <span class="rank-badge rank-lv1" id="rank-badge">LV1 (Rất Tốt)</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submit-btn">
+                    <i class="fa-solid fa-paper-plane"></i> GỬI BÁO CÁO
+                </button>
+                
+                <div id="status-message" class="status-message"></div>
+            </form>
+        </main>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
